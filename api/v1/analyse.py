@@ -23,7 +23,12 @@ async def analyse_code_base(analyse : CodeAnalyser):
     
     template_prompt = read_prompt_template_content("prompts/code_analysis_prompt.txt")
     if template_prompt is None or len(template_prompt) == 0:    
-        return {"message": "Prompt template is empty or not found."}    
+        return {"message": "Prompt template is empty or not found."} 
+     
+     # Combine all code chunks from documents
+    code_chunk = "\n".join(doc.get_content() for doc in docs)  
+
+    template_prompt=template_prompt.replace("{code_chunk}", code_chunk)
     
     """ 
     Chunking the documents into smaller parts

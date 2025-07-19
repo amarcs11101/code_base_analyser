@@ -27,3 +27,7 @@
 
 # Contains Fast API
 # LLM
+# Removing __pycache__ file 
+Get-ChildItem -Recurse -Include __pycache__,*.pyc,*.pyo | Remove-Item -Force -Recurse
+
+conda create -n fastapi-v1 python=3.10 -y

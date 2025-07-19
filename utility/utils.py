@@ -15,7 +15,7 @@ from langchain_core.runnables import RunnableSequence
 
 def llama_directory_reader(dir_path: str):    
     """
-    Reads all files in a directory and returns their content as documents.
+    Reads all files in a directory and returns their content as documents in easy way without looping it.
     Args:
         dir_path (str): The path to the directory to read files from.
     Returns:
@@ -42,17 +42,7 @@ def llama_directory_reader(dir_path: str):
 #                 "content": split
 #             })
 
-#     return chunks , [doc.metadata.get("file_path", "") for doc in documents] 
-
-def using_chatopen_ai_llm(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
-    """
-    Creates a ChatOpenAI instance with specified parameters.
-    Args:
-        model_name (str): The name of the model to use. Defaults to "gpt-3.5-turbo".
-        temperature (float): The temperature for the model. Defaults to 0.0.
-        max_tokens (int): The maximum number of tokens to generate. Defaults to 1000.  
-    """
-    return ChatOpenAI(model_name=model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
+#     return chunks , [doc.metadata.get("file_path", "") for doc in documents]  
 
 def read_prompt_template_content(file_path)-> str:
     """
@@ -75,6 +65,16 @@ def setup_prompt_template(template:str) -> PromptTemplate:
     prompt = PromptTemplate.from_template(template)
     prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
     return prompt
+
+def using_chatopen_ai_llm(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
+    """
+    Creates a ChatOpenAI instance with specified parameters.
+    Args:
+        model_name (str): The name of the model to use. Defaults to "gpt-3.5-turbo".
+        temperature (float): The temperature for the model. Defaults to 0.0.
+        max_tokens (int): The maximum number of tokens to generate. Defaults to 1000.  
+    """
+    return ChatOpenAI(model_name=model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
 
 def create_llm_chain_using_lcel(prompt, llm ,  code_document= None , output_parser: PydanticOutputParser = None) -> RunnableSequence:
     """
