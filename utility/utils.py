@@ -3,47 +3,100 @@
 @date: 2025-07-19
 @description: Utility functions for all supporting operations in the code base analyser.
 @version: 1.0
-"""
+""" 
+from langchain.text_splitter import RecursiveCharacterTextSplitter 
+from llama_index.core import SimpleDirectoryReader  
+from langchain_community.chat_models import ChatOpenAI
+from langchain.prompts import PromptTemplate 
+from langchain.output_parsers import PydanticOutputParser
+from pydantic_parser import CodeAnalysisResponse
+from langchain_core.runnables import RunnableSequence
 
-from llama_index.core import SimpleDirectoryReader 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from transformers import pipeline
-from transformers import AutoTokenizer, AutoModel
 
 def llama_directory_reader(dir_path: str):    
     """
-    Reads files from a directory and returns a list of documents.
-    Only files with specified extensions (.py, .html, .js) are included.
+    Reads all files in a directory and returns their content as documents.
     Args:
         dir_path (str): The path to the directory to read files from.
     Returns:
-        list: A list of documents read from the directory.
-    """ 
+        List[Document]: A list of documents containing the content of each file.
+    """
     reader = SimpleDirectoryReader(input_dir=dir_path , recursive=True , required_exts=[".java", ".html",".properties"])
     documents = reader.load_data()
     return documents
 
-def chunk_documents(documents, chunk_size=1000 , overlap=200):
-    """
-    Splits documents into chunks of specified size.
-    """
-    recursive_text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size
-                                                             , chunk_overlap=overlap)
-    chunks =[]
-    for doc in documents:
-        file_path = doc.metadata.get("file_path", "")
-        text = doc.get_content()
-        splits = recursive_text_splitter.split_text(text)
-        for split in splits:
-            chunks.append({
-                "source": file_path,
-                "content": split
-            })
+# def chunk_documents(documents, chunk_size=1000 , overlap=200):
+#     """
+#     Splits documents into chunks of specified size.
+#     """
+#     recursive_text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size
+#                                                              , chunk_overlap=overlap)
+#     chunks =[]
+#     for doc in documents:
+#         file_path = doc.metadata.get("file_path", "")
+#         text = doc.get_content()
+#         splits = recursive_text_splitter.split_text(text)
+#         for split in splits:
+#             chunks.append({
+#                 "source": file_path,
+#                 "content": split
+#             })
 
-    return chunks , [doc.metadata.get("file_path", "") for doc in documents]
+#     return chunks , [doc.metadata.get("file_path", "") for doc in documents] 
 
-def perform_embadding(chunks):    
-    pipe = pipeline("feature-extraction", model="microsoft/codebert-base")
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
-    model = AutoModel.from_pretrained("microsoft/codebert-base")
+def using_chatopen_ai_llm(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
+    """
+    Creates a ChatOpenAI instance with specified parameters.
+    Args:
+        model_name (str): The name of the model to use. Defaults to "gpt-3.5-turbo".
+        temperature (float): The temperature for the model. Defaults to 0.0.
+        max_tokens (int): The maximum number of tokens to generate. Defaults to 1000.  
+    """
+    return ChatOpenAI(model_name=model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
+
+def read_prompt_template_content(file_path)-> str:
+    """
+    Reads the content of a file and returns it as a string.
+    Args:
+        file_path (str): The path to the file to read.  
+    Returns:
+        str: The content of the file.
+    """
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return file.read()
+    
+def setup_prompt_template(template:str) -> PromptTemplate:
+    """
+    Sets up a prompt template for code analysis using PydanticOutputParser.
+    Args:
+        template (str): The template string to use for the prompt.    
+    """
+    pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
+    prompt = PromptTemplate.from_template(template)
+    prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
+    return prompt
+
+def create_llm_chain_using_lcel(prompt, llm ,  code_document= None , output_parser: PydanticOutputParser = None) -> RunnableSequence:
+    """
+    Advantage of using LCEL is it allows for a more modular and flexible approach to building LLM chains.
+    It enables the use of various components like text splitters, prompts, LLMs,    
+    and output parsers in a more structured way, making it easier to manage and modify the chain.
+    This function creates a chain that processes code documents through a series of transformations,
+    including text splitting, conversion to dictionaries, prompting, LLM processing, and output parsing.
+    This is particularly useful for analyzing code files and extracting structured information from them. 
+    Args:   
+        prompt (PromptTemplate): The prompt template to use.
+        llm (ChatOpenAI): The language model to use.
+        code_document (str, optional): The code document to analyze. Defaults to None.
+        output_parser (PydanticOutputParser, optional): The output parser to use. Defaults to None.
+    """
+    chain = (
+            RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+            | (lambda code_document: [{"chunk": d} for d in code_document])   # Convert text chunks into dicts for prompt
+            | prompt
+            | llm
+            | output_parser
+    )
+    return chain
+ 
 

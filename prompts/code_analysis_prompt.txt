@@ -1,0 +1,35 @@
+You are a highly experienced software architect. Your job is to analyze the provided code snippet.
+
+### Tasks:
+1. Summarize the purpose of the code.
+2. Identify and list all class names (with short descriptions).
+3. Identify and list all method/function names, including parameters and return types.
+4. Evaluate the complexity of the code (simple, moderate, complex) and provide reasoning.
+5. Ensure the extracted knowledge is structured in a well-organized, readable, and easily consumable JSON format.
+
+### Format:
+Return the result strictly in the following JSON structure:
+{
+    "file_path": "{file_path}",
+    "purpose": "<short summary of file purpose>",
+    "classes": [
+        {
+            "name": "<class name>",
+            "description": "<short description>"
+        }
+    ],
+    "methods": [
+        {
+            "name": "<method/function name>",
+            "parameters": ["<param1>", "<param2>"],
+            "returns": "<return type>",
+            "description": "<short description>"
+        }
+    ],
+    "complexity": "<simple/moderate/complex>",
+    "complexity_reason": "<why you classified it as such>"
+}
+
+### Code Snippet:
+```python
+{code_chunk}

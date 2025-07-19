@@ -5,3 +5,5 @@ llama-index
 langchain-openai
 pydantic
 transformers
+langchain_community
+langchain-core
