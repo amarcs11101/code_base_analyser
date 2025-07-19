@@ -1,3 +1,7 @@
 fastapi
 langchain
 dotenv
+llama-index
+langchain-openai
+pydantic
+transformers
