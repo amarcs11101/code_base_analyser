@@ -3,15 +3,26 @@
 @date: 2025-07-19
 @description: Utility functions for all supporting operations in the code base analyser.
 @version: 1.0
-""" 
-from langchain.text_splitter import RecursiveCharacterTextSplitter 
+"""  
 from llama_index.core import SimpleDirectoryReader  
 from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate 
+from langchain.prompts import ChatPromptTemplate 
 from langchain.output_parsers import PydanticOutputParser
-from pydantic_parser import CodeAnalysisResponse
-from langchain_core.runnables import RunnableSequence
+from pydantic_parser import CodeAnalysisResponse 
+from langchain_core.output_parsers import StrOutputParser
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document as LangChainDocument
 
+def convert_llama_to_langchain(docs):
+    lc_docs = []
+    for doc in docs:
+        lc_docs.append(
+            LangChainDocument(
+                page_content=doc.get_content(),
+                metadata=doc.metadata
+            )
+        )
+    return lc_docs
 
 def llama_directory_reader(dir_path: str):    
     """
@@ -25,24 +36,15 @@ def llama_directory_reader(dir_path: str):
     documents = reader.load_data()
     return documents
 
-# def chunk_documents(documents, chunk_size=1000 , overlap=200):
-#     """
-#     Splits documents into chunks of specified size.
-#     """
-#     recursive_text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size
-#                                                              , chunk_overlap=overlap)
-#     chunks =[]
-#     for doc in documents:
-#         file_path = doc.metadata.get("file_path", "")
-#         text = doc.get_content()
-#         splits = recursive_text_splitter.split_text(text)
-#         for split in splits:
-#             chunks.append({
-#                 "source": file_path,
-#                 "content": split
-#             })
-
-#     return chunks , [doc.metadata.get("file_path", "") for doc in documents]  
+def chunk_documents(documents, chunk_size=1000 , overlap=200):
+    """
+    Splits documents into chunks of specified size.
+    """
+    lc_docs = convert_llama_to_langchain(documents)
+    recursive_text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size
+                                                             , chunk_overlap=overlap)
+    chunks = recursive_text_splitter.split_documents(lc_docs)  
+    return chunks
 
 def read_prompt_template_content(file_path)-> str:
     """
@@ -55,18 +57,23 @@ def read_prompt_template_content(file_path)-> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
     
-def setup_prompt_template(template:str) -> PromptTemplate:
+def setup_prompt_template(template:str) -> ChatPromptTemplate:
     """
     Sets up a prompt template for code analysis using PydanticOutputParser.
     Args:
         template (str): The template string to use for the prompt.    
     """
-    pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
-    prompt = PromptTemplate.from_template(template)
-    prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
+    #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
+    prompt=ChatPromptTemplate.from_messages([
+        ("system",template),
+        ("human"),"{code_chunk}",
+        ("user","{input}")
+    ]
+)
+    #prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
     return prompt
 
-def using_chatopen_ai_llm(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
+def create_llm_object(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
     """
     Creates a ChatOpenAI instance with specified parameters.
     Args:
@@ -76,7 +83,7 @@ def using_chatopen_ai_llm(model_name="gpt-3.5-turbo", temperature=0.0, max_token
     """
     return ChatOpenAI(model_name=model_name, temperature=temperature, max_tokens=max_tokens, streaming=True)
 
-def create_llm_chain_using_lcel(prompt, llm ,  code_document= None , output_parser: PydanticOutputParser = None) -> RunnableSequence:
+def create_llm_chain_using_lcel(prompt, llm) :
     """
     Advantage of using LCEL is it allows for a more modular and flexible approach to building LLM chains.
     It enables the use of various components like text splitters, prompts, LLMs,    
@@ -90,12 +97,13 @@ def create_llm_chain_using_lcel(prompt, llm ,  code_document= None , output_pars
         code_document (str, optional): The code document to analyze. Defaults to None.
         output_parser (PydanticOutputParser, optional): The output parser to use. Defaults to None.
     """
-    chain = (
-            RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-            | (lambda code_document: [{"chunk": d} for d in code_document])   # Convert text chunks into dicts for prompt
-            | prompt
+    #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
+    parser=StrOutputParser()
+    
+    chain = ( 
+              prompt
             | llm
-            | output_parser
+            | parser
     )
     return chain
  

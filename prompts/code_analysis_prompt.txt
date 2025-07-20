@@ -9,26 +9,26 @@ You are a highly experienced software architect. Your job is to analyze the prov
 
 ### Format:
 Return the result strictly in the following JSON structure:
-{
+{{
     "file_path": "{file_path}",
     "purpose": "<short summary of file purpose>",
     "classes": [
-        {
+        {{
             "name": "<class name>",
             "description": "<short description>"
-        }
+        }}
     ],
     "methods": [
-        {
+        {{
             "name": "<method/function name>",
             "parameters": ["<param1>", "<param2>"],
             "returns": "<return type>",
             "description": "<short description>"
-        }
+        }}
     ],
     "complexity": "<simple/moderate/complex>",
     "complexity_reason": "<why you classified it as such>"
-}
+}}
 
 ### Code Snippet:
 ```python

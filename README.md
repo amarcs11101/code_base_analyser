@@ -22,8 +22,11 @@
 - App Running Steps
     1) pip install -r requirements.txt
     2) uvicorn main:app
-
-
+payload :- 
+{
+  "file_path": "D:\\aaa\\llm_usage\\SakilaProject",
+  "chunk_size": 1000
+}
 
 # Contains Fast API
 # LLM
