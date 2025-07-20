@@ -5,13 +5,14 @@
 @version: 1.0
 """  
 from llama_index.core import SimpleDirectoryReader  
-from langchain_community.chat_models import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate 
-from langchain.output_parsers import PydanticOutputParser
+from langchain_openai.chat_models import ChatOpenAI
+from langchain.prompts import ChatPromptTemplate  
 from pydantic_parser import CodeAnalysisResponse 
 from langchain_core.output_parsers import StrOutputParser
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document as LangChainDocument
+from llama_index.core.schema import Document
+from typing import List
 
 def convert_llama_to_langchain(docs):
     lc_docs = []
@@ -24,7 +25,7 @@ def convert_llama_to_langchain(docs):
         )
     return lc_docs
 
-def llama_directory_reader(dir_path: str):    
+def llama_directory_reader(dir_path: str) -> List[Document]:    
     """
     Reads all files in a directory and returns their content as documents in easy way without looping it.
     Args:
@@ -32,6 +33,7 @@ def llama_directory_reader(dir_path: str):
     Returns:
         List[Document]: A list of documents containing the content of each file.
     """
+    #reader = SimpleDirectoryReader(input_dir=dir_path , recursive=True , required_exts=[".java", ".html",".properties"])
     reader = SimpleDirectoryReader(input_dir=dir_path , recursive=True , required_exts=[".java", ".html",".properties"])
     documents = reader.load_data()
     return documents
@@ -66,7 +68,7 @@ def setup_prompt_template(template:str) -> ChatPromptTemplate:
     #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
     prompt=ChatPromptTemplate.from_messages([
         ("system",template),
-        ("human"),"{code_chunk}",
+        ("human","{code_chunk}"),
         ("user","{input}")
     ]
 )
@@ -106,5 +108,55 @@ def create_llm_chain_using_lcel(prompt, llm) :
             | parser
     )
     return chain
+
+def group_documents_by_extension_and_batch(docs, max_chars=8000):
+    """
+    Groups documents by extension and batches them by total character size.
+    """
+    file_groups = {
+        "java": [],
+        "html": [],
+        "properties": []
+    }
+    scanned_file_names = {
+        "java":set(),
+        "html": set(),
+        "properties":set()
+    }
+    for doc in docs:
+        file_name = doc.metadata.get("file_name", "").lower()
+        if file_name.endswith(".java"):
+            file_groups["java"].append(doc)
+            scanned_file_names["java"].add(file_name)
+        elif file_name.endswith(".html"):
+            file_groups["html"].append(doc)
+            scanned_file_names["html"].add(file_name)
+        elif file_name.endswith(".properties"):
+            file_groups["properties"].append(doc)
+            scanned_file_names["properties"].add(file_name)
+
+    batches = []
+
+    for extension, group in file_groups.items():
+        current_batch = []
+        current_size = 0
+        for doc in sorted(group, key=lambda x: len(doc.get_content()), reverse=True):
+            content_size = len(doc.get_content())
+            if current_size + content_size > max_chars:
+                if current_batch:
+                    batches.append(current_batch)
+                current_batch = []
+                current_size = 0
+            current_batch.append(doc)
+            current_size += content_size
+        if current_batch:
+            batches.append(current_batch)
+
+    return batches , scanned_file_names
+
+def combine_batch_content(batch):
+    return "\n\n".join(doc.get_content() for doc in batch)
+
+
  
 

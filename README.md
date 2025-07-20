@@ -17,11 +17,15 @@
 
           As Embeddings make sense if we were building an interactive tool to answer dynamic user questions about the codebase later (a retrieval-augmented system). But here, the objective is extraction, not search.
 
-
+5.  To make it fast following below concepts . 
+    ------------------------------------------
+   - Combine .java files together (by size or folders). 
+   - Aim for chunks of 2000-3000 tokens. 
+   - 1 LLM call processes meaningful larger batch.
 
 - App Running Steps
     1) pip install -r requirements.txt
-    2) uvicorn main:app
+    2) uvicorn main:app --reload
 payload :- 
 {
   "file_path": "D:\\aaa\\llm_usage\\SakilaProject",

@@ -1,9 +1,10 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents
+from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content
 from pydantic_parser import CodeAnalysisResponse
 import os
 from dotenv import load_dotenv
+import asyncio
 analyse_router = APIRouter()
 
 load_dotenv()
@@ -28,28 +29,33 @@ async def analyse_code_base(analyse : CodeAnalyser):
     
     template_prompt = read_prompt_template_content("prompts/code_analysis_prompt.txt")
     if template_prompt is None or len(template_prompt) == 0:    
-        return {"message": "Prompt template is empty or not found."} 
-    code_chunk=chunk_documents(docs, analyse.chunk_size) 
-     # Combine all code chunks from documents
-   # code_chunk = "\n".join(doc.get_content() or "" for doc in docs)
-
-    # template_prompt=template_prompt.replace("{code_chunk}", code_chunk) 
-    # template_prompt=template_prompt.replace("{file_path}", analyse.file_path)
+        return {"message": "Prompt template is empty or not found."}  
+ 
     print(f"Template Prompt: {template_prompt}")
 
     prompt_template = setup_prompt_template(template_prompt)
     print("Prompt template set up successfully.")
+    print(f"Prompt Template: {prompt_template}")
+    print(f"input vraibles are : {prompt_template.input_variables}")
+
     llm = create_llm_object(os.getenv("MODEL_NAME"))  
     print("LLM Object created successfully.")
+
     llm_chain = create_llm_chain_using_lcel(prompt_template, llm)
     print("LLM Chain created successfully.")
-    responses = []
-    for chunk in code_chunk:
-        result = llm_chain.invoke({
+
+    responses = [] 
+    batches , scanned_file_names = group_documents_by_extension_and_batch(docs, max_chars=8000) 
+    
+    async def analyse_batch(batch):
+        combined_content = combine_batch_content(batch)
+        return await llm_chain.ainvoke({ 
             "file_path": analyse.file_path,
-            "code_chunk": chunk.page_content,
+            "code_chunk": combined_content,
             "input": analyse.prompt
         })
-        responses.append(result)
 
-    return {"message":"Success","data":responses ,"file_path":None, "doc_scan_count":None}
+    responses = await asyncio.gather(*(analyse_batch(batch) for batch in batches))
+    
+    item_count = { key:  len(value) for key , value  in scanned_file_names.items() }
+    return {"responses": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
