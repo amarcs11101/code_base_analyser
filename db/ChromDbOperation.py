@@ -43,7 +43,7 @@ def save_data_in_vector_db(llm_responses: List[str], persist_directory: str = ".
         complexity = response_json.get("complexity", "")
 
         text_to_embed = (
-            f"This code belongs to project {project}. Purpose: {purpose}. "
+            f"Purpose: {purpose}. "
             f"Classes involved: {class_descriptions}. "
             f"Methods included: {method_names}. "
             f"Complexity is {complexity}."
@@ -60,9 +60,7 @@ def save_data_in_vector_db(llm_responses: List[str], persist_directory: str = ".
             metadata=metadata
         )
 
-        docs_to_store.append(doc)
-
-        docs_to_store.append(doc)
+        docs_to_store.append(doc) 
  
     vectorstore = Chroma.from_documents(
         documents=docs_to_store,
@@ -82,4 +80,16 @@ def perform_similarity_search(query: str, persist_directory: str = "./chroma_db"
         print("No results found for the query.")
         return []
     return results_with_scores
+
+def find_all_data(directory:str):
+    """
+    Retrieve all documents from the FAISS vector database.
+    Args:
+        faiss_db (FAISSVectorDB): The vector database to retrieve from.
+    Returns:
+        List[Document]: List of all code chunks stored in the vector database.
+    """
+    embedding_function = OpenAIEmbeddings()
+    ector_db = Chroma(persist_directory=directory, embedding_function=embedding_function)
+    return ector_db.get(include=["documents", "metadatas", "embeddings"])   
 

@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content
+from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content , query_llm_chain_using_lcel
 from pydantic_parser import CodeAnalysisResponse
-from db.ChromDbOperation import save_data_in_vector_db , perform_similarity_search
-from utility.constants import CHROME_DB_STORAGE_PATH
+from db.ChromDbOperation import save_data_in_vector_db , perform_similarity_search , find_all_data
+from utility.constants import CHROME_DB_STORAGE_PATH ,CODE_ANALYSIS_PROMPT_FILE_PATH,QUERY_KNOWLEDGE_BASE_PROMPT_FILE_PATH
 import os
 from dotenv import load_dotenv
 import asyncio
@@ -34,7 +34,7 @@ async def create_git_knowledge_base(analyse : CodeAnalyser):
     if docs is None or len(docs) == 0:
         return {"message": f"No documents found in the specified directory {analyse.file_path}."}
     
-    template_prompt = read_prompt_template_content("prompts/code_analysis_prompt.txt")
+    template_prompt = read_prompt_template_content(CODE_ANALYSIS_PROMPT_FILE_PATH)
     if template_prompt is None or len(template_prompt) == 0:    
         return {"message": "Prompt template is empty or not found."}  
  
@@ -72,13 +72,43 @@ async def create_git_knowledge_base(analyse : CodeAnalyser):
     item_count = { key:  len(value) for key , value  in scanned_file_names.items() }
     return {"message":f"Successfully extracted the insights of the project .  Please call /query api to ask any question related to the project {analyse.file_path} ","data": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
 
-@analyse_router.get("/knowledge-base")
-async def query_git_knowledge_base(query: str, top_k: int = 3):
+class QueryKnowledgeBase(BaseModel):
+    query: str
+    top_k: int = 3
+
+@analyse_router.post("/query-knowledge-base")
+async def query_git_knowledge_base(query_request : QueryKnowledgeBase):
     """
     Search for similar code in the vector database.
     """
     persist_directory = CHROME_DB_STORAGE_PATH
-    results = perform_similarity_search(query, persist_directory, top_k)
+    results = perform_similarity_search(query_request.query, persist_directory, query_request.top_k)
     if not results or len(results) == 0:
         return {"message": "No similar code found."}
-    return {"query": query, "results": results}
+    llm = create_llm_object(os.getenv("MODEL_NAME"))  
+    template_prompt = read_prompt_template_content(QUERY_KNOWLEDGE_BASE_PROMPT_FILE_PATH)
+    if template_prompt is None or len(template_prompt) == 0:    
+        return {"message": "Prompt template is empty or not found."}  
+ 
+    print(f"Template Prompt: {template_prompt}")
+
+    prompt_template = setup_prompt_template(template_prompt)
+
+    llm_chain=query_llm_chain_using_lcel(query_request.query, llm)
+    return await llm_chain.ainvoke({   
+            "context": prompt_template, 
+            "input": results
+        })  
+
+@analyse_router.get("/find-all")
+async def find_all_code_chunks():
+    """
+    Find all code chunks related to the query.
+    """
+    persist_directory = CHROME_DB_STORAGE_PATH
+    results = find_all_data(persist_directory)
+    
+    if not results or len(results) == 0:
+        return {"message": "No code chunks found."}
+    
+    return {"results": results}

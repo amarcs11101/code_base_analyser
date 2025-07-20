@@ -32,9 +32,28 @@ payload :-
   "chunk_size": 1000
 }
 
+############################ BEST PRACTICES ###############################
+1) At the end of your prompt, we should add strict instruction (this helps ChatPromptTemplate work as expected):
+2) Don't Query Directly using apikey everytime , instead better to query the vector db which would be cost effective
+3) 
+###########################################################################
+
 # Contains Fast API
 # LLM
 # Removing __pycache__ file 
 Get-ChildItem -Recurse -Include __pycache__,*.pyc,*.pyo | Remove-Item -Force -Recurse
 
 conda create -n fastapi-v1 python=3.10 -y
+
+Tested on question list using api
+-------------------------------- 
+
+"What controllers handle customer operations?"
+
+"Give me files related to security configuration."
+
+"Show me files with staff-related methods."
+
+"what are the api available inside customer controller?"
+
+list down all classes present in this project
