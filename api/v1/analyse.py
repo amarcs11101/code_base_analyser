@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content
+from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content , query_llm_chain_using_lcel
 from pydantic_parser import CodeAnalysisResponse
 from db.ChromDbOperation import save_data_in_vector_db , perform_similarity_search
-from utility.constants import CHROME_DB_STORAGE_PATH
+from utility.constants import CHROME_DB_STORAGE_PATH ,KNOWLEDGE_BASE_CREATE_PROMPT_PATH ,QUERY_KNOWLEDGE_BASE_PROMPT_PATH
 import os
 from dotenv import load_dotenv
 import asyncio
@@ -34,7 +34,7 @@ async def create_git_knowledge_base(analyse : CodeAnalyser):
     if docs is None or len(docs) == 0:
         return {"message": f"No documents found in the specified directory {analyse.file_path}."}
     
-    template_prompt = read_prompt_template_content("prompts/code_analysis_prompt.txt")
+    template_prompt = read_prompt_template_content(KNOWLEDGE_BASE_CREATE_PROMPT_PATH)
     if template_prompt is None or len(template_prompt) == 0:    
         return {"message": "Prompt template is empty or not found."}  
  
@@ -78,7 +78,19 @@ async def query_git_knowledge_base(query: str, top_k: int = 3):
     Search for similar code in the vector database.
     """
     persist_directory = CHROME_DB_STORAGE_PATH
+    
+
     results = perform_similarity_search(query, persist_directory, top_k)
+    print(f"Results found: {results}")
     if not results or len(results) == 0:
         return {"message": "No similar code found."}
-    return {"query": query, "results": results}
+    
+    template_prompt = read_prompt_template_content(QUERY_KNOWLEDGE_BASE_PROMPT_PATH)
+    llm = create_llm_object(os.getenv("MODEL_NAME"))  
+    print("LLM Object created successfully.")
+     
+    llm_chain = query_llm_chain_using_lcel(template_prompt, llm)
+    return await llm_chain.ainvoke({   
+            "context": results, 
+            "input": query
+        }) 

@@ -7,6 +7,7 @@
 from llama_index.core import SimpleDirectoryReader  
 from langchain_openai.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate  
+from langchain_core.prompts import PromptTemplate
 from pydantic_parser import CodeAnalysisResponse 
 from langchain_core.output_parsers import StrOutputParser
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -67,11 +68,11 @@ def setup_prompt_template(template:str) -> ChatPromptTemplate:
     """
     #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
     prompt=ChatPromptTemplate.from_messages([
-        ("system",template),
-        ("human","{code_chunk}"),
-        ("user","{input}")
-    ]
-)
+                ("system",template),
+                ("human","{code_chunk}"),
+                ("user","{input}")
+        ]
+    )
     #prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
     return prompt
 
@@ -156,6 +157,18 @@ def group_documents_by_extension_and_batch(docs, max_chars=8000):
 
 def combine_batch_content(batch):
     return "\n\n".join(doc.get_content() for doc in batch)
+
+def query_llm_chain_using_lcel(prompt, llm) : 
+    #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
+    parser=StrOutputParser()
+    prompt = PromptTemplate(input_variables=["context", "input"], template=prompt)
+
+    chain = ( 
+              prompt
+            | llm
+            | parser
+    )
+    return chain
 
 
  
