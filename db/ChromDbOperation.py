@@ -77,13 +77,9 @@ def perform_similarity_search(query: str, persist_directory: str = "./chroma_db"
     embedding_function = OpenAIEmbeddings()
     vectorstore = Chroma(persist_directory=persist_directory,embedding_function=embedding_function)
 
-    results = vectorstore.similarity_search(query, k=top_k)
-
-    for idx, doc in enumerate(results, 1):
-        print(f"\n Result #{idx}")
-        print(f"Content:\n{doc.page_content}\n")
-        print(f"Metadata:\n{doc.metadata}\n")
-        print("-" * 50)
-
-    return results
+    results_with_scores = vectorstore.similarity_search_with_relevance_scores(query, k=top_k)
+    if not results_with_scores or len(results_with_scores) == 0:
+        print("No results found for the query.")
+        return []
+    return results_with_scores
 

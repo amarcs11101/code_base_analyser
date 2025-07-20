@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 import shutil
+#from git import Repo
 analyse_router = APIRouter()
 
 load_dotenv()
@@ -15,15 +16,19 @@ load_dotenv()
 class CodeAnalyser(BaseModel):
     file_path :str = "D:\\aaa\\llm_usage\\SakilaProject"
     chunk_size: int = 1000
+    git_url: str=""
    
-@analyse_router.post("/code")
-async def analyse_code_base(analyse : CodeAnalyser):
+@analyse_router.post("/knowledge-base")
+async def create_git_knowledge_base(analyse : CodeAnalyser):
     """
     Reading the entire directory with the specified file extensions
     """"" 
     if os.path.isdir(analyse.file_path) is False:
         return {"message": f"The specified path {analyse.file_path} is not a directory."}
     
+    #if analyse.git_url and len(analyse.git_url) > 0:
+    #    Repo.clone_from(analyse.git_url, analyse.file_path)
+
     docs =llama_directory_reader(analyse.file_path)    
     #print(f"Documents loaded: {docs}")
     if docs is None or len(docs) == 0:
@@ -67,8 +72,8 @@ async def analyse_code_base(analyse : CodeAnalyser):
     item_count = { key:  len(value) for key , value  in scanned_file_names.items() }
     return {"message":f"Successfully extracted the insights of the project .  Please call /query api to ask any question related to the project {analyse.file_path} ","data": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
 
-@analyse_router.get("/query")
-async def query_code_base(query: str, top_k: int = 3):
+@analyse_router.get("/knowledge-base")
+async def query_git_knowledge_base(query: str, top_k: int = 3):
     """
     Search for similar code in the vector database.
     """
