@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content
 from pydantic_parser import CodeAnalysisResponse
+from db.ChromDbOperation import store_llm_responses_in_vector_db , search_similar_code_in_vector_db
 import os
 from dotenv import load_dotenv
 import asyncio
@@ -56,6 +57,19 @@ async def analyse_code_base(analyse : CodeAnalyser):
         })
 
     responses = await asyncio.gather(*(analyse_batch(batch) for batch in batches))
-    
+    #saving in chroma db
+    store_llm_responses_in_vector_db(responses)
+
     item_count = { key:  len(value) for key , value  in scanned_file_names.items() }
     return {"responses": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
+
+@analyse_router.get("/query")
+async def query_code_base(query: str, top_k: int = 3):
+    """
+    Search for similar code in the vector database.
+    """
+    persist_directory = "./chroma_db"
+    results = await asyncio.to_thread(
+        search_similar_code_in_vector_db, query, persist_directory, top_k
+    )
+    return {"query": query, "results": results}

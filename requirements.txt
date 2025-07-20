@@ -7,3 +7,4 @@ pydantic
 transformers
 langchain_community
 langchain-core
+chromadb
