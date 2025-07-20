@@ -4,7 +4,7 @@ from langchain.schema import Document
 from typing import List  
 import json
 
-def store_llm_responses_in_vector_db(llm_responses: List[str], persist_directory: str = "./chroma_db"
+def save_data_in_vector_db(llm_responses: List[str], persist_directory: str = "./chroma_db"
 ):
     """
     Stores LLM structured responses into Chroma vector DB with semantic embedding and dynamic metadata.
@@ -14,11 +14,11 @@ def store_llm_responses_in_vector_db(llm_responses: List[str], persist_directory
         persist_directory (str): Directory path to persist Chroma DB.
         language (str): Programming language for metadata (optional, default 'Java').
     """
-
+    llm_list = list(set(llm_responses))
     embedding_function = OpenAIEmbeddings()
     docs_to_store = []
 
-    for response_str in llm_responses:
+    for response_str in llm_list:
         if not response_str or not response_str.strip():
             print("Skipping empty response.")
             continue
@@ -73,14 +73,14 @@ def store_llm_responses_in_vector_db(llm_responses: List[str], persist_directory
     print(f"Stored {len(docs_to_store)} documents in Chroma DB at {persist_directory}.")
 
 
-def search_similar_code_in_vector_db(query: str, persist_directory: str = "./chroma_db", top_k: int = 3):
+def perform_similarity_search(query: str, persist_directory: str = "./chroma_db", top_k: int = 3):
     embedding_function = OpenAIEmbeddings()
     vectorstore = Chroma(persist_directory=persist_directory,embedding_function=embedding_function)
 
     results = vectorstore.similarity_search(query, k=top_k)
 
     for idx, doc in enumerate(results, 1):
-        print(f"\n🔹 Result #{idx}")
+        print(f"\n Result #{idx}")
         print(f"Content:\n{doc.page_content}\n")
         print(f"Metadata:\n{doc.metadata}\n")
         print("-" * 50)

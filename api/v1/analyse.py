@@ -2,10 +2,12 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content
 from pydantic_parser import CodeAnalysisResponse
-from db.ChromDbOperation import store_llm_responses_in_vector_db , search_similar_code_in_vector_db
+from db.ChromDbOperation import save_data_in_vector_db , perform_similarity_search
+from utility.constants import CHROME_DB_STORAGE_PATH
 import os
 from dotenv import load_dotenv
 import asyncio
+import shutil
 analyse_router = APIRouter()
 
 load_dotenv()
@@ -13,8 +15,7 @@ load_dotenv()
 class CodeAnalyser(BaseModel):
     file_path :str = "D:\\aaa\\llm_usage\\SakilaProject"
     chunk_size: int = 1000
-    prompt : str = "Please analyze the code and provide a summary of its purpose, classes, methods, and complexity."
-
+   
 @analyse_router.post("/code")
 async def analyse_code_base(analyse : CodeAnalyser):
     """
@@ -53,23 +54,26 @@ async def analyse_code_base(analyse : CodeAnalyser):
         return await llm_chain.ainvoke({ 
             "file_path": analyse.file_path,
             "code_chunk": combined_content,
-            "input": analyse.prompt
+            "input": prompt_template
         })
 
-    responses = await asyncio.gather(*(analyse_batch(batch) for batch in batches))
+    responses = await asyncio.gather(*(analyse_batch(batch) for batch in batches)) 
+
+    shutil.rmtree(CHROME_DB_STORAGE_PATH, ignore_errors=True)
+
     #saving in chroma db
-    store_llm_responses_in_vector_db(responses)
+    save_data_in_vector_db(responses)
 
     item_count = { key:  len(value) for key , value  in scanned_file_names.items() }
-    return {"responses": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
+    return {"message":f"Successfully extracted the insights of the project .  Please call /query api to ask any question related to the project {analyse.file_path} ","data": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
 
 @analyse_router.get("/query")
 async def query_code_base(query: str, top_k: int = 3):
     """
     Search for similar code in the vector database.
     """
-    persist_directory = "./chroma_db"
-    results = await asyncio.to_thread(
-        search_similar_code_in_vector_db, query, persist_directory, top_k
-    )
+    persist_directory = CHROME_DB_STORAGE_PATH
+    results = perform_similarity_search(query, persist_directory, top_k)
+    if not results or len(results) == 0:
+        return {"message": "No similar code found."}
     return {"query": query, "results": results}

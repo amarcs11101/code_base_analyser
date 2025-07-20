@@ -1,0 +1,1 @@
+CHROME_DB_STORAGE_PATH = "./chroma_db"
