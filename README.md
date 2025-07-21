@@ -1,6 +1,6 @@
 # Project Overview & Best Practices :-
 
-  This project analyzes the SakilaProject GitHub repository to extract meaningful insights from the codebase. It provides structured knowledge such as purpose, architecture, key methods, complexity, and other technical metadata by leveraging LLMs (Large Language Models) via LangChain and LlamaIndex.
+  This project analyzes Any Project GitHub repository to extract meaningful insights from the codebase. It provides structured knowledge such as purpose, architecture, key methods, complexity, and other technical metadata by leveraging LLMs (Large Language Models) via LangChain and LlamaIndex.
 
   The final output is stored in a structured JSON format, suitable for further analysis or documentation purposes.
 
@@ -59,7 +59,7 @@
         5. START your output with '{' and end with '}'.
 
 #  How to Run
-      NOTE:- need to clone the SakilaProject if its not in local & then use its file path in the payload
+      NOTE:- need to clone Any Project if its not in local & then use its file path in the payload
             This can be made dynamic but as of now i haven't done that . 
       1) Enter all the mentioned api key's value .env 
       2) pip install -r requirements.txt
@@ -71,7 +71,7 @@
 
 
 # Assumptions
-      1) SakilaProject follows standard Java project structure.
+      1) Any Project that follows standard Java project structure.
       2) If you are using gpt-3.5-turbo today via OpenAI API, most likely using the 16k version by  default (16,385 tokens).
 
 # What Does This Limit Include?

@@ -33,5 +33,5 @@ class CodeAnalysisResponse(BaseModel):
     explanation: str = Field(
         ...,
         description="A brief explanation of how this answer was derived from the provided context.",
-        example="This answer is derived directly from the classes involved in securing the web application using Spring Security in the Sakila project."
+        example="This answer is derived directly from the classes involved in securing the web application using Spring Security in the  project."
     )
