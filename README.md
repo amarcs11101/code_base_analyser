@@ -124,9 +124,11 @@
 
 # Swagger Screenshot 
    ![alt text](image-1.png)
+# Code Snippet containing methods   
    ![alt text](image-4.png)
    ![alt text](image-5.png)
    ![alt text](image-6.png)   
+# Swagger Request / Response
    ![alt text](image-3.png)
 
 
