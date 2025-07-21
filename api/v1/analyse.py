@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 import shutil
+import json
 #from git import Repo
 analyse_router = APIRouter()
 
@@ -100,11 +101,12 @@ async def query_git_knowledge_base(query_request : QueryKnowledgeBase):
     llm_chain=query_llm_chain_using_lcel(prompt_template, llm)
 
     context = "\n\n".join([doc.page_content for doc, _ in results])
-
-    return await llm_chain.ainvoke({   
+    result=    await llm_chain.ainvoke({   
             "context": context, 
             "input": query_request.query
-        })  
+        }) 
+    data=json.loads(result) 
+    return {"message":"Success","result":data ,"status_code":200} 
 """
 Below api i used for just checking the data storing in the chroma db 
 from my side . Its nowhere needed .
