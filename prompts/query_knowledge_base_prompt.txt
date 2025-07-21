@@ -6,11 +6,24 @@ The user question is: {input}
 
 Strictly answer using ONLY the PROJECT CONTEXT.
 
-Respond ONLY in valid JSON:
+Respond ONLY in valid JSON.
 
+Your JSON must contain:
+- `api_query`: repeat the user question.
+- `context_used`: List of filenames you used for this answer.
+- `extracted_information`: A dictionary containing any relevant extracted information such as classes, functions, configurations, etc. The keys of this dictionary depend on what was found.
+- `explanation`: A short explanation of how this answer was derived from the context.
+
+Example format (but adapt keys as necessary depending on what is found):
+
+```json
 {{
     "api_query": "{input}",
-    "context_used": ["CustomerController.java"],
-    "extracted_information": {{ "controllers": [ ... ] }},
-    "explanation": "This answer is derived directly from the CustomerController class in the context."
+    "context_used": ["SomeFile.java", "AnotherFile.java"],
+    "extracted_information": {{
+        "controllers": ["CustomerController"],
+        "functions": ["getCustomerDetails"],
+        "configurations": ["WebSecurityConfig"]
+    }},
+    "explanation": "This answer is derived directly from the relevant files in the context."
 }}
