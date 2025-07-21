@@ -60,7 +60,7 @@ def read_prompt_template_content(file_path)-> str:
     with open(file_path, 'r', encoding='utf-8') as file:
         return file.read()
     
-def setup_prompt_template(template:str) -> ChatPromptTemplate:
+def setup_chat_prompt_template(template:str) -> ChatPromptTemplate:
     """
     Sets up a prompt template for code analysis using PydanticOutputParser.
     Args:
@@ -74,6 +74,19 @@ def setup_prompt_template(template:str) -> ChatPromptTemplate:
     ]
 )
     #prompt = prompt.partial(format_instructions=pydantic_output_parser.get_format_instructions())
+    return prompt
+
+def setup_prompt_template(template:str) -> PromptTemplate:
+    """
+    Sets up a prompt template for code analysis using PydanticOutputParser.
+    Args:
+        template (str): The template string to use for the prompt.    
+    """
+    #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
+    prompt = PromptTemplate(
+        input_variables=["context", "input"],
+        template=template
+    )
     return prompt
 
 def create_llm_object(model_name="gpt-3.5-turbo", temperature=0.0, max_tokens=1000) -> ChatOpenAI:
@@ -161,7 +174,7 @@ def combine_batch_content(batch):
 def query_llm_chain_using_lcel(prompt, llm) : 
     #pydantic_output_parser = PydanticOutputParser(pydantic_object=CodeAnalysisResponse)
     parser=StrOutputParser()
-    prompt = PromptTemplate(input_variables=["context", "input"], template=prompt)
+    #prompt = PromptTemplate(input_variables=["context", "input"], template=prompt) 
 
     chain = ( 
               prompt

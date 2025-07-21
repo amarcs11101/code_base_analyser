@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
-from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content , query_llm_chain_using_lcel
+from pydantic import BaseModel , Field
+from utility.utils import llama_directory_reader , read_prompt_template_content ,setup_chat_prompt_template,setup_prompt_template ,create_llm_object,create_llm_chain_using_lcel, chunk_documents , group_documents_by_extension_and_batch,combine_batch_content , query_llm_chain_using_lcel
 from pydantic_parser import CodeAnalysisResponse
 from db.ChromDbOperation import save_data_in_vector_db , perform_similarity_search , find_all_data
 from utility.constants import CHROME_DB_STORAGE_PATH ,CODE_ANALYSIS_PROMPT_FILE_PATH,QUERY_KNOWLEDGE_BASE_PROMPT_FILE_PATH
@@ -14,7 +14,7 @@ analyse_router = APIRouter()
 load_dotenv()
 
 class CodeAnalyser(BaseModel):
-    file_path :str = "D:\\aaa\\llm_usage\\SakilaProject"
+    file_path :str = Field(..., description="The path to the directory containing the codebase.", example= "D:\\aaa\\llm_usage\\SakilaProject")
     chunk_size: int = 1000
     git_url: str=""
    
@@ -40,7 +40,7 @@ async def create_git_knowledge_base(analyse : CodeAnalyser):
  
     print(f"Template Prompt: {template_prompt}")
 
-    prompt_template = setup_prompt_template(template_prompt)
+    prompt_template = setup_chat_prompt_template(template_prompt)
     print("Prompt template set up successfully.")
     print(f"Prompt Template: {prompt_template}")
     print(f"input vraibles are : {prompt_template.input_variables}")
@@ -73,7 +73,7 @@ async def create_git_knowledge_base(analyse : CodeAnalyser):
     return {"message":f"Successfully extracted the insights of the project .  Please call /query api to ask any question related to the project {analyse.file_path} ","data": responses ,"scanned_file_names": scanned_file_names , "item_count": item_count}
 
 class QueryKnowledgeBase(BaseModel):
-    query: str
+    query: str = Field(..., description="The query to search in the knowledge base." , example="What controllers handle customer operations?")
     top_k: int = 3
 
 @analyse_router.post("/query-knowledge-base")
@@ -85,6 +85,9 @@ async def query_git_knowledge_base(query_request : QueryKnowledgeBase):
     results = perform_similarity_search(query_request.query, persist_directory, query_request.top_k)
     if not results or len(results) == 0:
         return {"message": "No similar code found."}
+    print(20*"#")
+    print(f" similarity search result found: {results}")
+    print(20*"#")
     llm = create_llm_object(os.getenv("MODEL_NAME"))  
     template_prompt = read_prompt_template_content(QUERY_KNOWLEDGE_BASE_PROMPT_FILE_PATH)
     if template_prompt is None or len(template_prompt) == 0:    
@@ -94,10 +97,13 @@ async def query_git_knowledge_base(query_request : QueryKnowledgeBase):
 
     prompt_template = setup_prompt_template(template_prompt)
 
-    llm_chain=query_llm_chain_using_lcel(query_request.query, llm)
+    llm_chain=query_llm_chain_using_lcel(prompt_template, llm)
+
+    context = "\n\n".join([doc.page_content for doc, _ in results])
+
     return await llm_chain.ainvoke({   
-            "context": prompt_template, 
-            "input": results
+            "context": context, 
+            "input": query_request.query
         })  
 """
 Below api i used for just checking the data storing in the chroma db 
