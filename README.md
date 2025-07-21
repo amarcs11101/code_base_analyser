@@ -1,3 +1,96 @@
+~ Project Overview & Best Practices :-
+
+  This project analyzes the SakilaProject GitHub repository to extract meaningful insights from the codebase. It provides structured knowledge such as purpose, architecture, key methods, complexity, and other technical metadata by leveraging LLMs (Large Language Models) via LangChain and LlamaIndex.
+
+  The final output is stored in a structured JSON format, suitable for further analysis or documentation purposes.
+
+~ Project Structure :-
+          code_base_analyser/
+          │──api/v1
+          |     |── analyse.py (contains api for query the llm )
+          |── config
+          |     |── router.py (api routers)
+          |── db
+          |    |── ChromaDbOperation.py
+          |── prompts
+          |  |── code_analysis_prompt.txt        (It analyses the code and extracts the info. using the Prompt)
+          |  |── query_knowledge_base_prompt.txt (It extracts the data based on query using the Prompt from vector db)
+          |── pydantic_parser
+          |         |── CodeAnalysisResponse.py
+          ├── utility/
+          │   ├── constants.py           # Reads and organizes code constants 
+          │   └── utils.py               # Utility functions   
+          │
+          ├── .env                       # API Keys / Environment variables / Langsmith configuration for log.
+          ├── requirements.txt           # Python dependencies
+          ├── README.md                  # Project documentation  
+          |── BEST_PRACTICES.md          # Best Practices
+          └── main.py                    # Entry point to run the pipeline
+
+
+~ Approach & Methodology
+  - Codebase Ingestion (Using llama index ` SimpleDirectoryReader ` as it works faster)
+  - Chunking for LLM Token Limits
+      Split files:
+          - Group by file type.
+          - Split content into logical, syntactic, or semantic blocks.
+          - Ensure no chunk exceeds LLM token limits.
+  - LLM Integration
+        - LLM: OpenAI gpt-3.5-turbo , GPT-4o / GPT-4-turbo (suitable for code understanding).
+        - Framework: LangChain LCEL for structured prompts and output parsing.
+
+~ Knowledge Extraction
+    Prompts:
+        -----------------------
+        | code_analysis_prompt |
+        ------------------------
+        1. Summarize the purpose of the code.
+        2. Identify and list all class names (with short descriptions).
+        3. Identify and list all method/function names, including parameters and return types.
+        4. Evaluate the complexity of the code (simple, moderate, complex) and provide reasoning.
+        5. Ensure the extracted knowledge is structured in a well-organized, readable, and easily      consumable JSON format.
+       ----------------------------------
+       |query_knowledge_base_prompt.txt |
+       ----------------------------------
+        1. Output must ONLY be valid JSON.
+        2. DO NOT write "Here is your JSON", "Sure!", "Output:", or anything outside the JSON.
+        3. If no information is found, clearly state this in `extracted_information` and explain why in `explanation`.
+        4. DO NOT include ```json markdown fences.
+        5. START your output with '{' and end with '}'.
+
+~  How to Run
+      NOTE:- need to clone the SakilaProject if its not in local & then use its file path in the payload
+            This can be made dynamic but as of now i haven't done that . 
+      1) Enter all the mentioned api key's value .env 
+      2) pip install -r requirements.txt
+      3) uvicorn main:app --reload
+      4) open swagger url :- http://localhost:8000/docs
+      5) All the logs can be tracked in the langsmith portal inside logs
+
+~ Assumptions
+      1) SakilaProject follows standard Java project structure.
+      2) If you are using gpt-3.5-turbo today via OpenAI API, most likely using the 16k version by  default (16,385 tokens).
+
+~ What Does This Limit Include?
+     1) Prompt (input) + Completion (output) combined cannot exceed the token limit.
+     2) Tokens ≈ words but not exactly:
+     3) Its currently answering the question related to all java files only. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ~ Steps Followed to create this project 
     1) Selecting a directory for code base analysing .
     2) Using llama index library to find all (java, html , properties ) files present in a directory recursively .

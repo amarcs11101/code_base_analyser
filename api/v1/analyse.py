@@ -99,7 +99,10 @@ async def query_git_knowledge_base(query_request : QueryKnowledgeBase):
             "context": prompt_template, 
             "input": results
         })  
-
+"""
+Below api i used for just checking the data storing in the chroma db 
+from my side . Its nowhere needed .
+"""
 @analyse_router.get("/find-all")
 async def find_all_code_chunks():
     """
