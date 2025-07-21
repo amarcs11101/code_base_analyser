@@ -1,4 +1,4 @@
-~ Project Overview & Best Practices :-
+# Project Overview & Best Practices :-
 
   This project analyzes the SakilaProject GitHub repository to extract meaningful insights from the codebase. It provides structured knowledge such as purpose, architecture, key methods, complexity, and other technical metadata by leveraging LLMs (Large Language Models) via LangChain and LlamaIndex.
 
@@ -28,7 +28,7 @@
 
 
 
-~ Approach & Methodology
+# Approach & Methodology
   - Codebase Ingestion (Using llama index ` SimpleDirectoryReader ` as it works faster)
   - Chunking for LLM Token Limits
       Split files:
@@ -95,43 +95,34 @@
 
           As Embeddings make sense if we were building an interactive tool to answer dynamic user questions about the codebase later (a retrieval-augmented system). But here, the objective is extraction, not search.
 
-5.  To make it fast following below concepts . 
-    ------------------------------------------
-   - Combine .java files together (by size or folders). 
-   - Aim for chunks of 2000-3000 tokens. 
-   - 1 LLM call processes meaningful larger batch.
+    5.  To make it fast following below concepts . 
+        ------------------------------------------
+      - Combine .java files together (by size or folders). 
+      - Aim for chunks of 2000-3000 tokens. 
+      - 1 LLM call processes meaningful larger batch.
 
-- App Running Steps
+# App Running Steps
     1) pip install -r requirements.txt
     2) uvicorn main:app --reload
-payload :- 
-{
-  "file_path": "D:\\aaa\\llm_usage\\SakilaProject",
-  "chunk_size": 1000
-}
+      payload :- 
+      {
+        "file_path": "D:\\aaa\\llm_usage\\SakilaProject" 
+      }
 
-############################ BEST PRACTICES ###############################
-1) At the end of your prompt, we should add strict instruction (this helps ChatPromptTemplate work as expected):
-2) Don't Query Directly using apikey everytime , instead better to query the vector db which would be cost effective
-3) 
-###########################################################################
+# BEST PRACTICES  
+    1) At the end of your prompt, we should add strict instruction (this helps ChatPromptTemplate work as expected):
+    2) Don't Query Directly using apikey everytime , instead better to query the vector db which would be cost effective 
 
 # Contains Fast API
 # LLM
 # Removing __pycache__ file 
-Get-ChildItem -Recurse -Include __pycache__,*.pyc,*.pyo | Remove-Item -Force -Recurse
+    Get-ChildItem -Recurse -Include __pycache__,*.pyc,*.pyo | Remove-Item -Force -Recurse
+# Creating conda env if not available
+    conda create -n fastapi-v1 python=3.10 -y
 
-conda create -n fastapi-v1 python=3.10 -y
-
-Tested on question list using api
--------------------------------- 
-
-"What controllers handle customer operations?"
-
-"Give me files related to security configuration."
-
-"Show me files with staff-related methods."
-
-"what are the api available inside customer controller?"
-
-list down all classes present in this project
+# Tested on question list using api 
+     What controllers handle customer operations?
+     Give me files related to security configuration.
+     Show me files with staff-related methods.
+     what are the api available inside customer controller?
+     list down all classes present in this project
