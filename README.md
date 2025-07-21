@@ -121,3 +121,5 @@
    - Q3.  Show me files with staff-related methods.
    - Q4.  what are the api available inside customer controller?
    - Q5.  list down all classes present in this project
+
+   ![alt text](image-1.png)
