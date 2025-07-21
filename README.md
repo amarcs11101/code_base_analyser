@@ -122,4 +122,8 @@
    - Q4.  what are the api available inside customer controller?
    - Q5.  list down all classes present in this project
 
+# Swagger Screenshot 
    ![alt text](image-1.png)
+
+# Langsmith Logs Screenshot
+   ![alt text](image-2.png)

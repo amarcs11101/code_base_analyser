@@ -22,8 +22,10 @@ Example format (but adapt keys as necessary depending on what is found):
     "context_used": ["SomeFile.java", "AnotherFile.java"],
     "extracted_information": {{
         "controllers": ["CustomerController"],
-        "functions": ["getCustomerDetails"],
-        "configurations": ["WebSecurityConfig"]
+        "methods": ["method1", "method2"],
+        "classes": ["SomeClass"],
+        "functions": ["functionA"],
+        "configurations": ["ConfigX"]
     }},
     "explanation": "This answer is derived directly from the relevant files in the context."
 }}
