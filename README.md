@@ -123,14 +123,14 @@
    - Q5.  list down all classes present in this project
 
 # Swagger Screenshot 
-   ![alt text](image-1.png)
+   ![alt text](images_info/image-1.png)
 # Code Snippet containing methods   
-   ![alt text](image-4.png)
-   ![alt text](image-5.png)
-   ![alt text](image-6.png)   
+   ![alt text](images_info/image-4.png)
+   ![alt text](images_info/image-5.png)
+   ![alt text](images_info/image-6.png)   
 # Swagger Request / Response
-   ![alt text](image-7.png)
-   ![alt text](image-3.png)
+   ![alt text](images_info/image-7.png)
+   ![alt text](images_info/image-3.png)
 # Langsmith Logs Screenshot
-   ![alt text](image-2.png)
+   ![alt text](images_info/image-2.png)
 
