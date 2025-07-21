@@ -65,7 +65,10 @@
       2) pip install -r requirements.txt
       3) uvicorn main:app --reload
       4) open swagger url :- http://localhost:8000/docs
+          - call api /knowledge-base to store the insights of project inside vector db
+          - call api /query-knowledge-base to execute query .
       5) All the logs can be tracked in the langsmith portal inside logs
+
 
 # Assumptions
       1) SakilaProject follows standard Java project structure.
@@ -99,15 +102,7 @@
         ------------------------------------------
       - Combine .java files together (by size or folders). 
       - Aim for chunks of 2000-3000 tokens. 
-      - 1 LLM call processes meaningful larger batch.
-
-# App Running Steps
-    1) pip install -r requirements.txt
-    2) uvicorn main:app --reload
-      payload :- 
-      {
-        "file_path": "D:\\aaa\\llm_usage\\SakilaProject" 
-      }
+      - 1 LLM call processes meaningful larger batch. 
 
 # BEST PRACTICES  
     1) At the end of your prompt, we should add strict instruction (this helps ChatPromptTemplate work as expected):
