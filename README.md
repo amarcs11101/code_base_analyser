@@ -39,8 +39,8 @@
         - LLM: OpenAI gpt-3.5-turbo , GPT-4o / GPT-4-turbo (suitable for code understanding).
         - Framework: LangChain LCEL for structured prompts and output parsing.
 
-~ Knowledge Extraction
-    Prompts:
+# Knowledge Extraction
+    ~ Prompts:
         -----------------------
         | code_analysis_prompt |
         ------------------------
@@ -58,7 +58,7 @@
         4. DO NOT include ```json markdown fences.
         5. START your output with '{' and end with '}'.
 
-~  How to Run
+#  How to Run
       NOTE:- need to clone the SakilaProject if its not in local & then use its file path in the payload
             This can be made dynamic but as of now i haven't done that . 
       1) Enter all the mentioned api key's value .env 
@@ -67,31 +67,16 @@
       4) open swagger url :- http://localhost:8000/docs
       5) All the logs can be tracked in the langsmith portal inside logs
 
-~ Assumptions
+# Assumptions
       1) SakilaProject follows standard Java project structure.
       2) If you are using gpt-3.5-turbo today via OpenAI API, most likely using the 16k version by  default (16,385 tokens).
 
-~ What Does This Limit Include?
+# What Does This Limit Include?
      1) Prompt (input) + Completion (output) combined cannot exceed the token limit.
      2) Tokens ≈ words but not exactly:
-     3) Its currently answering the question related to all java files only. 
+     3) Its currently answering the question related to all java files only.  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-~ Steps Followed to create this project 
+# Steps Followed to create this project 
     1) Selecting a directory for code base analysing .
     2) Using llama index library to find all (java, html , properties ) files present in a directory recursively .
     3) Chunking each and every file using langchain RecursiveCharacterTextSplitter with some overlap between words , so that our llm can find the relationship between each and every sentense
