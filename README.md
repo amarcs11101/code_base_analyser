@@ -4,28 +4,28 @@
 
   The final output is stored in a structured JSON format, suitable for further analysis or documentation purposes.
 
-~ Project Structure :-
+# Project Structure :-
           code_base_analyser/
-          │──api/v1
-          |     |── analyse.py (contains api for query the llm )
-          |── config
-          |     |── router.py (api routers)
-          |── db
-          |    |── ChromaDbOperation.py
-          |── prompts
-          |  |── code_analysis_prompt.txt        (It analyses the code and extracts the info. using the Prompt)
-          |  |── query_knowledge_base_prompt.txt (It extracts the data based on query using the Prompt from vector db)
-          |── pydantic_parser
-          |         |── CodeAnalysisResponse.py
-          ├── utility/
-          │   ├── constants.py           # Reads and organizes code constants 
-          │   └── utils.py               # Utility functions   
-          │
-          ├── .env                       # API Keys / Environment variables / Langsmith configuration for log.
-          ├── requirements.txt           # Python dependencies
-          ├── README.md                  # Project documentation  
-          |── BEST_PRACTICES.md          # Best Practices
-          └── main.py                    # Entry point to run the pipeline
+            ├── api/v1/
+            │   └── analyse.py                       # API for querying the LLM
+            ├── config/
+            │   └── router.py                        # API routers
+            ├── db/
+            │   └── ChromaDbOperation.py             # Operations for Vector DB (Chroma)
+            ├── prompts/
+            │   ├── code_analysis_prompt.txt         # Prompt for analyzing code
+            │   └── query_knowledge_base_prompt.txt  # Prompt for querying vector DB
+            ├── pydantic_parser/
+            │   └── CodeAnalysisResponse.py          # Pydantic models for structured output
+            ├── utility/
+            │   ├── constants.py                     # Constants for code processing
+            │   └── utils.py                         # Utility functions
+            ├── .env                                  # API Keys / Env variables / LangSmith config
+            ├── requirements.txt                      # Python dependencies
+            ├── README.md                             # Project documentation
+            ├── BEST_PRACTICES.md                     # Best practices guide
+            └── main.py                               # Entry point for running the pipeline
+
 
 
 ~ Approach & Methodology
