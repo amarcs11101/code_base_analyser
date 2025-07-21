@@ -121,8 +121,8 @@
     conda create -n fastapi-v1 python=3.10 -y
 
 # Tested on question list using api 
-     What controllers handle customer operations?
-     Give me files related to security configuration.
-     Show me files with staff-related methods.
-     what are the api available inside customer controller?
-     list down all classes present in this project
+   - Q1.  What controllers handle customer operations?
+   - Q2.  Give me files related to security configuration.
+   - Q3.  Show me files with staff-related methods.
+   - Q4.  what are the api available inside customer controller?
+   - Q5.  list down all classes present in this project
